@@ -1,4 +1,4 @@
-Documentation/Architecture/**/*.js linguist-documentation=false
+Documentation/Architecture/** linguist-documentation=false
 Documentation/Architecture/ export-ignore
 Documentation/Architecture/** export-ignore
 Documentation/ export-ignore
