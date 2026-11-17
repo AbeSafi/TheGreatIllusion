@@ -1,0 +1,354 @@
+#menu-item-saves, #menu-item-restart {
+	display: none;
+}
+
+.inv-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 15;
+}
+
+.inv-ui {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    padding: 20px;
+    position: relative;
+}
+
+.inv-ui .inv-cropper {
+  	position: relative;
+    width: 100%;
+    height: 100%;
+    background-size: 110%;
+    background-position: center;
+    background-repeat: no-repeat;
+    overflow: hidden;
+}
+
+.inv-image {
+    position: relative;
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+    flex-shrink: 0;
+}
+
+.inv-open-button {
+    background-color: black;
+    color: white;
+    border-width: 2px;
+    border-color: white;
+}
+
+.inv-close-button {
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 8px 16px;
+    border-radius: 0px;
+    background-color: black;
+    color: white;
+    border-width: 2px;
+    border-color: white;
+    cursor: pointer;
+    z-index: 10;
+}
+
+.inv-ui .inv-cropper::after {
+    content: '';
+    position: absolute;
+  	inset: 0;
+    mix-blend-mode: multiply;
+  	background-color: #70421450;
+}
+
+.inv-grid {
+    position: absolute;
+    top: 0.6in;
+    left: 0.4in;
+    width: 90%;
+    height: 80%;
+    display: grid;
+    grid-template-columns: repeat(9, 1fr);
+    grid-template-rows: repeat(6, 1fr);
+    gap: 0px;
+    background: rgba(0, 0, 0, 0);
+}
+
+.fight-button {
+    background-color: black;
+    color: white;
+    border-width: 2px;
+    border-color: white;
+}
+
+.combat-container {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 800px;
+    height: 600px;
+    border: 2px solid #333;
+}
+
+.combat-sprites {
+    flex: 0 0 70%;
+    background: #222;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.combat-bottom {
+    flex: 1;
+    height: 30%;
+    padding: 10px;
+    overflow-y: auto;
+}
+
+.action-buttons {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.action-button {
+    background-color: black;
+    color: white;
+    border-width: 2px;
+    border-color: white;
+}
+
+.action-button-tired:hover {
+    background-color: rgb(84, 13, 13);
+    border-color: rgb(126, 27, 27);
+}
+
+.combat-turn-bar {
+    flex: 0 0 auto;
+    display: flex;
+    gap: 4px;
+    justify-content: center;
+    width: 100%;
+}
+
+.combat-turn-rect {
+    flex: 1;
+    height: 8px;
+    background: #333;
+}
+
+.combat-turn-rect.active {
+    background: #fff;
+}
+
+/* Movement */
+
+.nav-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 5px;
+    width: 150px;
+}
+.nav-button {
+    width: 55px;
+    height: 45px;
+    text-align: center;
+    font-family: 'Segoe UI Symbol', 'Apple Symbols', 'DejaVu Sans', sans-serif;
+    background-color: black;
+    color: white;
+    border-width: 2px;
+    border-color: white;
+}
+
+/* Map */
+
+.map-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.map-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    padding: 20px;
+  	position: relative;
+}
+
+.map-image {
+    position: relative;
+    background-size: contain;
+    background-position: center;
+    background-repeat: no-repeat;
+    flex-shrink: 0;
+}
+
+.map-grid {
+    position: absolute;
+    display: grid;
+    pointer-events: none;
+}
+
+.map-slot {
+    width: 100%;
+    height: 100%;
+}
+
+.map-slot.current {
+    background-color: rgba(255, 0, 0, 0.2);
+    border: 2px solid rgba(255, 255, 255, 0.8);
+    z-index: 1;
+}
+
+.map-close {
+    position: absolute; 
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%); 
+    padding: 8px 16px;
+    border-radius: 0px;
+    background-color: black;
+    color: white;
+    border-width: 2px;
+    border-color: white;
+    cursor: pointer;
+    z-index: 10; 
+}
+
+.selection-button {
+  	max-width: 130px;
+    background-color: #f1e0c4;
+    box-shadow: inset 0 0 8px #7c6131;
+    border: 1px solid #a88242;
+    padding: 10px 20px;
+    margin-left: 10px;
+    flex: 1;
+    cursor: pointer;
+    font-size: 14px;
+    color: #3d2610;
+    transition: box-shadow 0.3s ease, background-color 0.3s ease;
+}
+
+.selection-button:hover {
+    background-color: #bb9261;
+    box-shadow: inset 0 0 10px #3d2610;
+  	border-color: #69401a;
+    cursor: pointer;
+}
+
+.fade-in {
+  opacity: 0;
+  animation: fadeIn 3s ease-in forwards 1s;
+}
+
+.shake {
+  animation: shake 0.3s ease-in-out;
+}
+
+.cutscene-hint {
+  display: inline;
+  margin-left: 0.4em;
+  opacity: 0.35;
+  animation: cutscene-pulse 1.3s ease-in-out infinite;
+  pointer-events: none;
+}
+
+#location {
+  display: flex;
+  gap: 1rem; /* optional spacing between children */
+}
+
+.quest-log {
+    background-color: rgb(39, 39, 39);
+    border-color: white;
+    border-width: 1.5px;
+    border-style: solid;
+}
+
+.new-quest {
+    font-weight: bold;
+    color: rgb(14, 151, 14);
+}
+
+#locDescription {
+	flex: 3;
+}
+
+.pulse {
+    animation: pulse-size 0.25s ease-in-out
+}
+
+.pulse-colorless {
+    animation: pulse-size-colorless 0.25s ease-in-out
+}
+
+#merchant-overlay {
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background: black;
+	opacity: 0;
+	pointer-events: none;
+	transition: opacity 1.5s ease;
+	z-index: 9999;
+}
+
+#merchant-overlay.fade-in {
+	opacity: 1;
+	pointer-events: auto;
+}
+
+@keyframes pulse-size {
+    0% { transform: scale(1); background-color: white; }
+    50% { transform: scale(1.17); background-color: rgb(158, 255, 188); }
+    100% { transform: scale(1); background-color: white; }
+}
+
+@keyframes pulse-size-colorless {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.17); }
+    100% { transform: scale(1); }
+}
+
+@keyframes cutscene-pulse {
+  0%, 100% { opacity: 0.3; transform: translateY(0); }
+  50%      { opacity: 0.7;  transform: translateY(3px); }
+}
+
+@keyframes shake {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  50% { transform: translateX(5px); }
+  75% { transform: translateX(-2.5px); }
+  100% { transform: translateX(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
