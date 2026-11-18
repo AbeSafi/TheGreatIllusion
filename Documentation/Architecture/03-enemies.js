@@ -3,16 +3,16 @@ class EnemyClass {
     	this.name = name;
 			this.health = health;
 			this.pattern = pattern;
-			this.turnCount = 0;
-			this.defending = false;
-			this.interrupted = false;
-			this.damageBoost = 0;
-			this.NPCKey = NPCKey
+			this.turnCount = 0; // Variable used during combat, gets the current position in attack pattern
+			this.defending = false; // Variable used during combat, hold enemy defending status
+			this.interrupted = false; // Variable used during combat, checked to determine if skipping enemy turn
+			this.damageBoost = 0; // Variable used during combat, gives the enemy a boost to their attack damage
+			this.NPCKey = NPCKey // A later addition, links an enemy to an NPC for use in other functions
     }
   
   	takeTurn() {
 			// Fit the current turn into the monster's current action.
-			const fittedTurn = this.turnCount % this.pattern.length;
+			const fittedTurn = this.turnCount % this.pattern.length; // Pattern loops since combat can be indefinitely long
 			const enemyChoice = this.pattern[fittedTurn];
 		
 			this.turnCount++;
@@ -21,17 +21,19 @@ class EnemyClass {
     }
   
   	dup() {
+			// Doesn't duplicate turnCount, defending, interrupted, or damageBoost since these are transient variables
     	return new EnemyClass(
         	this.name,
 					this.health,
-					JSON.parse(JSON.stringify(this.pattern)),
+					JSON.parse(JSON.stringify(this.pattern)), // Patterns are objects, deep copied to preserve inside values
 					this.NPCKey
         )
     }
 }
 
-// All Enemies Map
+// A map that holds every possible enemy in the game
 const enemies = {
+		// Debug enemy that exists only on the map: Gym
 		basic_enemy: new EnemyClass(
 			"BasicEnemy",
 			15,
@@ -42,6 +44,7 @@ const enemies = {
 				{action: "rest", tell: "The enemy is tired"}
 			]
     ),
+		// Debug enemy that exists only on the map: Gym
   	windup_enemy: new EnemyClass(
 			"BasicEnemy2",
 				30,
@@ -221,24 +224,27 @@ const enemies = {
 				{ action: "windup", hint: "Eteocle's shoulders shift.", tell: "Eteocle stumbles out of his cloak as he winds up his sword." },
 				{ action: "attack", damage: 1, hint: "The air warps.", tell: "A sword shakily swipes from behind a veil!" }
 			],
-			"Coward"
+			"Coward" // This enemy is linked to an NPC
 		),
+		// This enemy's fight is initiated because of a dialouge option
 		viselli_dial: new EnemyClass(
 			"The Lady",
 			5,
 			[
-				{action: "rest", tell: "Filler"}
+				{action: "rest", tell: "Filler"} // This enemy isn't fought through regular combat so the pattern doesn't matter
 			],
-			"General"
+			"General" // This enemy is linked to an NPC
 		),
+		// This is the version of viselli that is "fought" during the good route dialogue with her
 		viselli_friendly: new EnemyClass(
 			"Viselli",
 			999,
 			[
-				{action: "rest", tell: "Viselli says hi!"}
+				{action: "rest", tell: "Viselli says hi!"} // This enemy isn't fought through regular combat so the pattern doesn't matter
 			],
-			"General"
+			"General" // This enemy is linked to an NPC
 		),
+		// This enemy's fight is initiated because of a dialouge option
 		camilos_dial: new EnemyClass(
 			"Camilos",
 			30,
@@ -253,7 +259,7 @@ const enemies = {
 				{ action: "attack", damage: 1, tell: "Camilos leaps forward, bringing his blade down as he closes the distance." },
 				{ action: "attack", damage: 1, tell: "Camilos faints with his blade, then slips a flintlock shot past." }
 			],
-			"Soldier"
+			"Soldier" // This enemy is linked to an NPC
 		),
 		camilos_angered: new EnemyClass(
 			"Camilos",
@@ -269,7 +275,7 @@ const enemies = {
 				{ action: "attack", damage: 1, hint: "Camilos steadies his feet.", tell: "Camilos slashes in a wide, heavy arc." },
 				{ action: "windup", hint: "Camilos goes still.", tell: "Camilos is breathing hard, focusing as he recovers." }
 			],
-			"Soldier"
+			"Soldier" // This enemy is linked to an NPC
 		),
 		camilos_monster: new EnemyClass(
 			"Camilos",
@@ -285,8 +291,9 @@ const enemies = {
 				{ action: "attack", damage: 1, hint: "Small twigs shiver.", tell: "A claw of splintered wood swipes in a wide arc." },
 				{ action: "windup", hint: "The canopy collects inward.", tell: "It shudders, Camilos' voice escaping from somewhere deep inside. \"why... did you betray me...\"" }
 			],
-			"Soldier"
+			"Soldier" // This enemy is linked to an NPC
 		),
+		// This enemy's fight is initiated because of a dialouge option
 		beerbark_dial: new EnemyClass(
 			"Beerbark",
 			100,
@@ -301,8 +308,9 @@ const enemies = {
 				{ action: "attack", damage: 2, tell: "Beerbark drops a rotten hand on the floor, it leaps forward!" },
 				{ action: "attack", damage: 1, tell: "Beerbark steps back, grinning, and hurls a glass jar that shatters into a choking mist." }
 			],
-			"Pirate"
+			"Pirate" // This enemy is linked to an NPC
 		),
+		// This enemy's fight is initiated because of a dialouge option
 		eteocle_dial: new EnemyClass (
 			"Eteocle",
 			1,
@@ -310,7 +318,7 @@ const enemies = {
 				{action: "attack", damage: 1, tell: "Eteocle swings his blade with desparation!"},
 				{action: "rest", tell: "Eteocle loses his balance."}
 			],
-			"Coward"
+			"Coward" // This enemy is linked to an NPC
 		),
 		diving_suit: new EnemyClass (
 			"Diving Suit Creature",
@@ -323,38 +331,58 @@ const enemies = {
 		)
 }
 
-// Map for the enemies actions, links the strings to an outcome
+/* 
+
+	Holds special actions that an enemy can preform instead of the basic attack & rest loop
+	
+	There's a redundancy with my design, initially I was only to send player and enemy through enemyAction paramters.
+	When I started sending combat through, I no longer need the specific player and enemy arguments.
+	I kept them later on only because it would've required too much overhaul.
+
+	*/
 const enemyActionsMap = {
 	  "windup": {
 			habitatAction: false,
 			enemyAction: (player, enemy) => {
-      	enemy.damageBoost += 1;
+      	enemy.damageBoost += 1; // This is reset by a condition in combat
     	}
 		},
+		// A left over of an older combat design. Removing it might break something. An enemy on a rest turn does nothing.
   	"rest": {
 			habitatAction: false,
 			enemyAction: (player, enemy) => {},
 		},
+		// Action that occurs when player reaches the final encounter with Viselli on the bad route
 		"resetPlayer": {
 			habitatAction: true,
+			// Player is stripped of all of their possessions
 			enemyAction: (_playerOld, _enemy, combat) => {
+				/* 
+				
+				Using _playerOld didn't reference the player at function creation time for some reason.
+				There's a possibility that it would work now, however that's not guaranteed.
+
+				*/
 				const truePlayer = State.variables.player;
 				
+				// Player's armor is destroyed bit by bit and removed
 				if (truePlayer.armor > 0) combat.attackPlayerFunc(truePlayer.armor, true);
-				if (truePlayer.inventory[6]) truePlayer.inventory[6] = null;
+				
+				// Player's weapon is removed, player's equipped weapon is always on slot 6
+				if (truePlayer.inventory[6]) truePlayer.inventory[6] = null; 
 				combat.pushCombatLogs(`${truePlayer.name}'s weapon morphs and rusts!`, 'rgb(149, 119, 29)');
 
-				// Redundancy for safety, remove player armor incase they still have it
+				// Armor should be gone by this point but there could be corner cases so remove again. Armor is always on slot 15
 				if (truePlayer.inventory[15]) truePlayer.unprepareEquipment(truePlayer.inventory[15]);
 
-				// Redundancy for safety, remove all statuses from player incase they still have any
+				// All statuses should be gone by this point, remove again in consideration of corner cases
 				truePlayer.playerStatus = [];
 				combat.pushCombatLogs(`A sensation of weakness washes over ${truePlayer.name}!`, 'rgb(149, 119, 29)');
 
 				// Remove all player gold
 				updateGold(-1 * truePlayer.inventory[0].amount);
 				
-				// Remove all player itmes in their inventory that isn't the big four memories
+				// Remove all player items in their inventory that isn't the big four memories
 				const keepList = ["Mem_Cwd", "Mem_Gnrl", "Mem_Prt", "Mem_Sldr"];
 				for (let i = 1; i < truePlayer.inventory.length; ++i) {
 					if (!truePlayer.inventory[i]) continue;
@@ -373,6 +401,7 @@ const enemyActionsMap = {
 		}
 };
 
+// Holds the reward an enemy drops when defeated, there is no reward if empty
 const enemyRewardsMap = {
 	"crazed_axeman": ["blank_orb"],
 	"sleeping_blob": ["testKey"],
@@ -390,7 +419,7 @@ const enemyRewardsMap = {
 	"eteocle": [],
 	"eteocle_dial": ["Mem_Cwd", "spiked_shield"],
 	"viselli_dial": ["Crkd_Aclde"],
-	"viselli": ["Mem_Gnrl"],
+	"viselli": ["Mem_Gnrl"], // Enemy that is created live on a dialouge option, doesn't inside "enemies" as this enemy is mutable.
 	"camilos_dial": ["Mem_Sldr", "mtshot_flintlock"],
 	"camilos_angered": ["Mem_Sldr"],
 	"camilos_monster": ["Mem_Sldr"],
@@ -399,6 +428,7 @@ const enemyRewardsMap = {
 	"viselli_friendly": ["Mem_Gnrl"]
 }
 
+// Each key holds the name of the passage its respective enemy can be found in.
 const hostileLocs = {
 	"Gym_1_2": "crazed_axeman",
 	"Dgn2": "sleeping_blob",
@@ -418,11 +448,13 @@ const hostileLocs = {
 	"Opening3": "diving_suit"
 };
 
+// hostileLocsVersion is used by an NPC to determine how many gifts they should give when prompted
 let hostileLocsVersion = 0;
 
 function editHostileLocs(location, value) {
 	hostileLocs[location] = value;
 
+	// The enemy in Opening3 is a tutorial enemy, it shouldn't affect hostileLocsVersion
 	const exclusionList = ["Opening3"];
 
 	if (exclusionList.includes(location)) return;

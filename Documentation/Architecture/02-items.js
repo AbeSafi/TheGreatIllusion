@@ -1,23 +1,31 @@
-// ----- Items and Inventory Classes ----- //
+// Since there can be multiple of same item in the player's inventory, guarantees that each item is unique behind the scenes. 
 let _nextItemUid  = 0;
+
 class ItemClass {
     constructor(name, iconImage, description, effect = "", effectSuccess = "", 
 			          effectFail = "", combatUsable = false, isPrepared = false, 
 								isImportant = false, amount = 1) {
-			this.uid = `i${_nextItemUid++}`;
-			this.name = name;
-			this.iconImage = iconImage;
-			this.description = description;
-			this.effect = effect;
-			this.effectSuccess = effectSuccess;
-			this.effectFail = effectFail;
-			this.combatUsable = combatUsable;
-			this.isPrepared = isPrepared;
-			this.isImportant = isImportant;
-			this.amount = amount;
+			this.uid = `i${_nextItemUid++}`; // Unique id of each item in the game
+			this.name = name; // Primary name for an item.
+			this.iconImage = iconImage; // Deprecated, unused
+			this.description = description; // Usually holds a small lore hint along with what the item looks like.
+			this.effect = effect; // A secondary name for an item. Can be shared between items with different primary names. Not visible to the player.
+			this.effectSuccess = effectSuccess; // Deprecated, unused
+			this.effectFail = effectFail; // Deprecated, unused
+			this.combatUsable = combatUsable; // Determines if an item can be used in combat
+			this.isPrepared = isPrepared; // Determines if an item is currently prepared for combat
+			this.isImportant = isImportant; // Determines if the item can be discarded from the inventory or not
+			this.amount = amount; // Only ever used by gold, all other items are not guaranteed to support more than 1 amount
     }
 
+		/*
+		 
+			Exists because Twine will refresh classes with clone() on a page refresh 
+			That messes with _nextItemUid, so a custom dup() exists in order to keep uids consistent.
+
+		*/
 		dup() {
+			// Duplicates all member variables into a new version of this exact item (the exception being uid).
     	const c = new this.constructor(
 				this.name,
 				this.iconImage,
@@ -30,7 +38,10 @@ class ItemClass {
 				this.isImportant,
 				this.amount
 			);
+
+			// This member variable came into existence much later than the others. Likely could go inside, but if it ain't broke.
 			c.templateKey = this.templateKey;
+			
 			return c;
 	}
 }
@@ -39,19 +50,20 @@ class EquipmentClass extends ItemClass {
     constructor(name, iconImage, description, combatEffects = [], ...itemArgs) {
         super(name, iconImage, description, ...itemArgs);
         this.combatEffects = combatEffects; // Passive Effects specifically for combat
-        this.equipped = false;
-				this.combatUsable = false;
-				this.isPrepared = false;
-				this.type = "equipment"
+        this.equipped = false; // No item is equipped by default
+				this.combatUsable = false; // This override exists likely due to an oversight, it doesn't break anything because its importance is unknown.
+				this.isPrepared = false; // No equipment is prepared by default. Would've been better if I didn't declare first it above since only equipment types can be prepared.
+				this.type = "equipment" 
     }
 
+		// Extends the parent duplication function by also duplicating the new variables introduced with this class.
 		dup () {
 			const dup = super.dup();
 			dup.combatEffects = [...this.combatEffects];
 			dup.equipped = this.equipped;
-			dup.type = this.type;
-			dup.combatUsable = false;
-			dup.isPrepared = false;
+			dup.type = this.type; // Unnecessary but harmless
+			dup.combatUsable = false; // Redundancy for safety
+			dup.isPrepared = false; // Redundancy for safety
 
 			return dup;
 		}
@@ -64,10 +76,11 @@ class WeaponClass extends EquipmentClass {
         this.type = "weapon";
     }
 
+		// Extends the parent duplication function by also duplicating the new variables introduced with this class.
 		dup () {
 			const dup = super.dup();
 			dup.damage = this.damage;
-			dup.type = this.type;
+			dup.type = this.type; // Unnecessary but harmless
 			
 			return dup;
 		}
@@ -76,22 +89,23 @@ class WeaponClass extends EquipmentClass {
 class ArmorClass extends EquipmentClass {
     constructor(name, iconImage, description, defense, combatEffects = []) {
         super(name, iconImage, description, combatEffects);
-        this.defense = defense;
-				this.maxHealth = defense;
+        this.defense = defense; // Doubles as armor health
+				this.maxHealth = defense; // Allows armor to be healed to max defense should the time come.
         this.type = "armor";
     }
 
+		// Extends the parent duplication function by also duplicating the new variables introduced with this class.
 		dup () {
 			const dup = super.dup();
 			dup.defense = this.defense;
-			dup.type = this.type;
+			dup.type = this.type; // Unnecessary but harmless
 			dup.maxHealth = this.maxHealth;
 			
 			return dup;
 		}
 }
 
-// All items map:
+// A map that hold every item that can exist in the game
 const allItems = {
 	testItem: new ItemClass(
 			"Armor Booster",
@@ -514,10 +528,12 @@ const allItems = {
 	)
 }
 
+// Gives every item its own key 
 for (const key in allItems) {
-    allItems[key].templateKey = key;
+  allItems[key].templateKey = key;
 }
 
+// Tracks if the player destroyed, returned, or hasn't done anything with the memory orbs.
 State.variables.memoryStates = {
 	memories: {
 		"Mem_MD" : 0,
@@ -535,7 +551,7 @@ State.variables.memoryStates = {
 		"Mem_Prt": 0,
 		"Mem_Gnrl": 0
 	},
-	version: 0
+	version: 0 // Deprecated, unused
 }
 
 function addItemToInventory(itemName, amount = -1) {
@@ -544,16 +560,17 @@ function addItemToInventory(itemName, amount = -1) {
 	if (amount !== -1) item.amount = amount;
   
 	for (let i = 0; i < inventory.length; ++i) {
-		// Ignore 6, 7, 8, 15, 16, 17
+		// Ignore slots 6, 7, 8, 15, 16, 17 as these are reserved for prepared/equipped items.
 		if (i % 9 > 5 && i <= 17) {continue;}
 		
-			if (!inventory[i]) {
-				inventory[i] = item;
-				return i;
-			}
+		// Adds item to inventory if the slot is empty
+		if (!inventory[i]) {
+			inventory[i] = item;
+			return i; // Returns the slot the item was placed into.
+		}
 	}
 
-	return -1;
+	return -1; // Returns -1 if the inventory is full
 }
 
 function removeItemFromInventory(itemIndex) {
@@ -562,6 +579,7 @@ function removeItemFromInventory(itemIndex) {
 	
 	inventory[itemIndex] = null;
 
+	// Going to be honest, don't remember why this is here. Won't remove it because it doesn't break anything.
 	return !!item;
 }
 
@@ -572,26 +590,34 @@ function findItemInInventory(itemName) {
 		if (!inventory[i]) continue; 
 		
 		if (inventory[i].templateKey == itemName) {
-			return i;
+			return i; // Returns slot index of item in inventory
 		}
 	}
 
-	return -1;
+	return -1; // Returns -1 if item isn't in inventory
 }
 
 function updateGold(goldAmount) {
 	const player = State.variables.player;
 
-	player.inventory[0].amount += goldAmount;
+	player.inventory[0].amount += goldAmount; // Every game is initialized with gold at slot 0
 }
 
+// Function is used in combat
 function makeStatusInstance(effectKey, source, effectMap = combatEffectMap, durationOverride = null) {
 	const def = effectMap[effectKey];
+	/* 
+	
+	Each effect has a function that stores its initial state.
+	However I implemented those functions much later.
+	Therefore Incase I missed on or the effect doesn't care about its initial state, there's a fallback option.
+	
+	*/
 	const initial = def?.getInitialState ? def.getInitialState() : {};
 
 	return {
 		name: effectKey,
-		duration: durationOverride ?? def?.duration ?? 1,
+		duration: durationOverride ?? def?.duration ?? 1, // Allows for a custom duration, falls back to item duration, then 1 if necessary
 		source,
 		...initial
 	};
@@ -600,7 +626,8 @@ function makeStatusInstance(effectKey, source, effectMap = combatEffectMap, dura
 function setMemoryStates(memoryId, value) {
 	const memoryStates = State.variables.memoryStates;
 
-	if (memoryStates)
-	memoryStates.memories[memoryId] = value;
-	memoryStates.version += 1;
+	if (memoryStates) {
+		memoryStates.memories[memoryId] = value;
+		memoryStates.version += 1; // Memories version is deprecated, this stays just because it doesn't break anything
+	}
 }
